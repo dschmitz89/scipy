@@ -2401,13 +2401,25 @@ class f_gen(rv_continuous):
         return lPx
 
     def _cdf(self, x, dfn, dfd):
-        return sc.fdtr(dfn, dfd, x)
+        y = dfn * x / (dfn * x + dfd)
+        return sc.betainc(dfn/2, dfd/2, y)
 
     def _sf(self, x, dfn, dfd):
-        return sc.fdtrc(dfn, dfd, x)
+        y = dfn * x / (dfn * x + dfd)
+        return sc.betaincc(0.5 * dfn, 0.5 * dfd, y)
 
     def _ppf(self, q, dfn, dfd):
-        return sc.fdtri(dfn, dfd, q)
+        # Calculate the inverse of the incomplete beta function
+        beta_quantile = sc.betaincinv(0.5 * dfn, 0.5 * dfd, q)
+    
+        # Transform the beta quantile to the F-distribution quantile
+        f_quantile = dfd/dfn * (1/beta_quantile - 1)
+        return f_quantile
+
+    def _isf(self, q, dfn, dfd):
+        beta_isf = sc.betainccinv(0.5 * dfn, 0.5 * dfd, q)
+        f_isf = dfd/dfn * (1/beta_isf - 1)
+        return f_isf
 
     def _stats(self, dfn, dfd):
         v1, v2 = 1. * dfn, 1. * dfd
