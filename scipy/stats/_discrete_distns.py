@@ -95,7 +95,7 @@ class binom_gen(rv_discrete):
         return scu._binom_isf(x, n, p)
 
     def _ppf(self, q, n, p):
-        return scu._binom_ppf(q, n, p)
+        return sc.bdtrik(q, n, p)
 
     def _stats(self, n, p, moments='mv'):
         mu = n * p
