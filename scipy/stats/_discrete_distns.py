@@ -5,7 +5,7 @@
 from functools import partial
 
 from scipy import special
-from scipy.special import entr, logsumexp, betaln, gammaln as gamln
+from scipy.special import entr, logsumexp, betaln, bdtrik, gammaln as gamln
 import scipy.special._ufuncs as scu
 from scipy._lib._util import rng_integers
 import scipy._lib.array_api_extra as xpx
@@ -95,7 +95,7 @@ class binom_gen(rv_discrete):
         return scu._binom_isf(x, n, p)
 
     def _ppf(self, q, n, p):
-        return sc.bdtrik(q, n, p)
+        return np.ceil(bdtrik(q, n, p))
 
     def _stats(self, n, p, moments='mv'):
         mu = n * p
