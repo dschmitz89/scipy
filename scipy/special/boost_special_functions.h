@@ -17,7 +17,8 @@
 typedef boost::math::policies::policy<
     boost::math::policies::promote_float<false >,
     boost::math::policies::promote_double<false >,
-    boost::math::policies::max_root_iterations<400 > > SpecialPolicy;
+    boost::math::policies::max_root_iterations<400 >,
+    boost::math::policies::discrete_quantile<boost::math::policies::real > > SpecialPolicy;
 
 // Round up to achieve correct ppf(cdf) round-trips for discrete distributions
 typedef boost::math::policies::policy<
@@ -1699,7 +1700,7 @@ binom_ppf_wrap(const Real x, const Real n, const Real p)
     Real y;
     try {
          y = boost::math::quantile(
-            boost::math::binomial_distribution<Real, StatsPolicy>(n, p), x);
+            boost::math::binomial_distribution<Real, SpecialPolicy>(n, p), x);
     } catch (const std::domain_error& e) {
         sf_error("bdtrik", SF_ERROR_DOMAIN, NULL);
         y = NAN;
@@ -1715,7 +1716,7 @@ binom_ppf_wrap(const Real x, const Real n, const Real p)
     }
     if (y < 0 || y > n) {
         sf_error("bdtrik", SF_ERROR_NO_RESULT, NULL);
-        return NAN;
+        y = NAN;
     }
     return y;
 }
