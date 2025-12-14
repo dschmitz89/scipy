@@ -498,7 +498,7 @@ class Binomial(DiscreteDistribution):
         )
 
     def _icdf_formula(self, x, *, n, p, **kwargs):
-        return scu._binom_ppf(x, n, p)
+        return np.ceil(special.bdtrik(x, n, p))
 
     def _iccdf_formula(self, x, *, n, p, **kwargs):
         return scu._binom_isf(x, n, p)

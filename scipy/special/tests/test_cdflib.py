@@ -6,8 +6,6 @@ The following functions still need tests:
 - ncfdtridfn
 - ncfdtridfd
 - ncfdtrinc
-- nbdtrik
-- nbdtrin
 - nctdtridf
 - nctdtrinc
 
@@ -869,6 +867,7 @@ class TestPdtrik:
         # mp.gammainc(k+1, a=m, regularized=True)
         assert_allclose(sp.pdtrik(p, m), k, rtol=1e-15)
 
+
 @pytest.mark.parametrize("a, b, p, ref", [
     (0, 0, 0, np.nan),
     (0, 0, 1, np.nan),
@@ -894,3 +893,20 @@ def test_gdtrix_edge_cases(a, b, p, ref):
 ])
 def test_gdtria_edge_cases(p, b, x, ref):
     assert_equal(sp.gdtria(p, b, x), ref)
+
+
+class TestNegativeBinomialFunctions:
+    # CDF reference values computed with mpmath with the following script
+    # from mpmath import mp
+    # def neg_binomial_cdf(k, n, p):
+    #     k, n, p = map(mp.mpf, (k, n, p))
+    #     return float(mp.betainc(n, k + 1, 0, mp.one - p, regularized=True))
+    @pytest.mark.parametrize("k, n, p, cdf_reference",
+                             [(20, 30, 0.5, 0.10131937553227033),
+                              (90, 100, 0.5, 0.2569548179436232),
+                              (90, 100, 0.7, 0.9999998301263832),
+                              (100, 1000, 0.9, 0.17008975275733854)
+                             ])
+    def test_neg_binom_cdf_inverses(self, k, n, p, cdf_reference):
+        assert_allclose(sp.nbdtrik(cdf_reference, n, p), k, rtol=1e-12)
+        assert_allclose(sp.nbdtrin(k, cdf_reference, p), n, rtol=1e-12)

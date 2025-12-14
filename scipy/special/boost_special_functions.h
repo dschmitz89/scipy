@@ -1685,13 +1685,9 @@ binom_cdf_double(double x, double n, double p)
     return binom_cdf_wrap(x, n, p);
 }
 
-
-// Binomial distribution quantile is wrapped once
-// for special.bdtrik
-// and once for stats due to different rounding policies
-template<typename Real, typename Policy>
+template<typename Real>
 Real
-bdtrik_wrap(const Real x, const Real n, const Real p, const Policy& policy_)
+binom_ppf_wrap(const Real x, const Real n, const Real p)
 {
     if (std::isnan(x) || std::isnan(n) || std::isnan(p)) {
         return NAN;
@@ -1703,7 +1699,7 @@ bdtrik_wrap(const Real x, const Real n, const Real p, const Policy& policy_)
     Real y;
     try {
          y = boost::math::quantile(
-            boost::math::binomial_distribution<Real, Policy>(n, p), x);
+            boost::math::binomial_distribution<Real, SpecialPolicy>(n, p), x);
     } catch (const std::domain_error& e) {
         sf_error("bdtrik", SF_ERROR_DOMAIN, NULL);
         y = NAN;
@@ -1725,27 +1721,15 @@ bdtrik_wrap(const Real x, const Real n, const Real p, const Policy& policy_)
 }
 
 float
-bdtrik_float(float x, float n, float p)
-{
-    return bdtrik_wrap(x, n, p, SpecialPolicy());
-}
-
-double
-bdtrik_double(double x, double n, double p)
-{
-    return bdtrik_wrap(x, n, p, SpecialPolicy());
-}
-
-float 
 binom_ppf_float(float x, float n, float p)
 {
-    return bdtrik_wrap(x, n, p, StatsPolicy());
+    return binom_ppf_wrap(x, n, p);
 }
 
 double
 binom_ppf_double(double x, double n, double p)
 {
-    return bdtrik_wrap(x, n, p, StatsPolicy());
+    return binom_ppf_wrap(x, n, p);
 }
 
 template<typename Real>
@@ -1849,8 +1833,80 @@ template<typename Real>
 Real
 nbinom_ppf_wrap(const Real x, const Real r, const Real p)
 {
-    return boost::math::quantile(
-        boost::math::negative_binomial_distribution<Real, StatsPolicy>(r, p), x);
+    if (std::isnan(x) || std::isnan(r) || std::isnan(p)) {
+        return NAN;
+    }
+    if (r <= 0 || p < 0 || p > 1 || x < 0 || x > 1) {
+        sf_error("nbdtrik", SF_ERROR_DOMAIN, NULL);
+        return NAN;
+    }
+    Real y;
+    try {
+         y = boost::math::quantile(
+            boost::math::negative_binomial_distribution<Real, SpecialPolicy>(r, p), x);
+    } catch (const std::domain_error& e) {
+        sf_error("nbdtrik", SF_ERROR_DOMAIN, NULL);
+        y = NAN;
+    } catch (const std::overflow_error& e) {
+        sf_error("nbdtrik", SF_ERROR_OVERFLOW, NULL);
+        y = INFINITY;
+    } catch (const std::underflow_error& e) {
+        sf_error("nbdtrik", SF_ERROR_UNDERFLOW, NULL);
+        y = 0; 
+    } catch (...) {
+        sf_error("nbdtrik", SF_ERROR_NO_RESULT, NULL);
+        y = NAN;
+    }
+    if (y < 0) {
+        sf_error("nbdtrik", SF_ERROR_NO_RESULT, NULL);
+        y = NAN;
+    }
+    return y;
+}
+
+template<typename Real>
+Real
+nbdtrin_wrap(const Real k, const Real y, const Real p)
+{
+    if (std::isnan(p) || std::isnan(k) || std::isnan(y)) {
+        return NAN;
+    }
+    if (k < 0 || y < 0 || y > 1 || p < 0 || p > 1) {
+        sf_error("nbdtrin", SF_ERROR_DOMAIN, NULL);
+        return NAN;
+    }
+    Real n;
+    try {
+        n = boost::math::negative_binomial_distribution<Real, SpecialPolicy>::find_minimum_number_of_trials(
+            k, p, y) - k;
+    } catch (const std::domain_error& e) {
+        sf_error("nbdtrin", SF_ERROR_DOMAIN, NULL);
+        n = NAN;
+    } catch (const std::overflow_error& e) {
+        sf_error("nbdtrin", SF_ERROR_OVERFLOW, NULL);
+        n = INFINITY;
+    } catch (const std::underflow_error& e) {
+        sf_error("nbdtrin", SF_ERROR_UNDERFLOW, NULL);
+        n = 0;
+    } catch (...) {
+        sf_error("nbdtrin", SF_ERROR_OTHER, NULL);
+        n = NAN;
+    }
+    if (n < 0) {
+        sf_error("nbdtrin", SF_ERROR_NO_RESULT, NULL);
+        n = NAN;
+    }
+    return n;
+}
+
+double nbdtrin_double(double k, double y, double p)
+{
+    return nbdtrin_wrap(k, y, p);
+}
+
+float nbdtrin_float(float k, float y, float p)
+{
+    return nbdtrin_wrap(k, y, p);
 }
 
 float

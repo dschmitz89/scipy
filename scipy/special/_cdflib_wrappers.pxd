@@ -25,8 +25,6 @@ cdef extern from "cdflib.h" nogil:
     TupleDID cdffnc_which3(double, double, double, double, double);
     TupleDID cdffnc_which4(double, double, double, double, double);
     TupleDID cdffnc_which5(double, double, double, double, double);
-    TupleDID cdfnbn_which2(double, double, double, double, double);
-    TupleDID cdfnbn_which3(double, double, double, double, double);
     TupleDID cdfnor_which3(double, double, double, double);
     TupleDID cdfnor_which4(double, double, double, double);
     TupleDID cdfpoi_which2(double, double, double);
@@ -113,52 +111,6 @@ cdef inline double fdtridfd(double dfn, double p, double f) noexcept nogil:
     ret = cdff_which4(p, q, f, dfn)
     result, status, bound = ret.d1, ret.i1, ret.d2
     return get_result("fdtridfd", argnames, result, status, bound, 1)
-
-
-cdef inline double nbdtrik(double p, double xn, double pr) noexcept nogil:
-    cdef:
-        double q = 1.0 - p
-        double ompr = 1.0 - pr
-        double result, bound
-        int status = 10
-        char *argnames[5]
-        TupleDID ret
-
-    if isnan(p) or not isfinite(xn) or isnan(pr):
-      return NAN
-
-    argnames[0] = "p"
-    argnames[1] = "q"
-    argnames[2] = "xn"
-    argnames[3] = "pr"
-    argnames[4] = "ompr"
-
-    ret = cdfnbn_which2(p, q, xn, pr, ompr)
-    result, status, bound = ret.d1, ret.i1, ret.d2
-    return get_result("nbdtrik", argnames, result, status, bound, 1)
-
-
-cdef inline double nbdtrin(double s, double p, double pr) noexcept nogil:
-    cdef:
-        double q = 1.0 - p
-        double ompr = 1.0 - pr
-        double result, bound
-        int status = 10
-        char *argnames[5]
-        TupleDID ret
-
-    if isnan(s) or isnan(p) or isnan(pr):
-      return NAN
-
-    argnames[0] = "p"
-    argnames[1] = "q"
-    argnames[2] = "s"
-    argnames[3] = "pr"
-    argnames[4] = "ompr"
-
-    ret = cdfnbn_which3(p, q, s, pr, ompr)
-    result, status, bound = ret.d1, ret.i1, ret.d2
-    return get_result("nbdtrin", argnames, result, status, bound, 1)
 
 
 cdef inline double ncfdtridfd(double dfn, double p, double nc, double f) noexcept nogil:
