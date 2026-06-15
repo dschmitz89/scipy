@@ -695,9 +695,17 @@ class TestNoncentralTFunctions:
         (0.98, -3.8, 15, 0.9999990264591945),
         (9.8, 38, 15, 2.252076291604796e-09),
     ])
-    def test_inverses(self, df, nc, x, expected_cdf):
+    def test_nctdtrit_nctdtrinc(self, df, nc, x, expected_cdf):
         assert_allclose(sp.nctdtrit(df, nc, expected_cdf), x, rtol=1e-10)
         assert_allclose(sp.nctdtrinc(df, expected_cdf, x), nc, rtol=1e-10)
+
+    @pytest.mark.parametrize("df, nc, x, expected_cdf", [
+        (3000, 3, 0.1, 0.0018657780826323328),
+        (0.98, -3.8, 15, 0.9999990264591945),
+        (9.8, 0.38, 0.0015, 0.3525155979107491),
+    ])
+    def test_nctdtridf(self, df, nc, x, expected_cdf):
+        assert_allclose(sp.nctdtridf(expected_cdf, nc, x), df, rtol=1e-10)
 
     def test_nctdtrinc_gh19896(self):
         # test that gh-19896 is resolved.
