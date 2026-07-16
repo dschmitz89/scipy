@@ -65,10 +65,13 @@ def biteopt(
 
     Notes
     -----
-    BiteOpt is a stochastic, derivative-free global optimizer that maintains a
-    small population of candidate solutions and evolves them with an ensemble
-    of stochastic move generators governed by an adaptive selection scheme. It
-    targets low- to medium-dimensional continuous problems with finite box
+    BiteOpt is a stochastic, population-based, global optimizer that maintains a
+    portfolio of candidate-generation strategies and dynamically tracks their
+    efficiency, favouring whichever works best for the current objective function.
+    This contrasts with classical Differential Evolution, which uses a single
+    fixed strategy throughout.
+    
+    BiteOpt targets low- to medium-dimensional continuous problems with finite box
     bounds and requires no gradient information. Because the search is
     stochastic, results depend on the random stream; pass `rng` for
     reproducible runs.
