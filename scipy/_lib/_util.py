@@ -7,7 +7,6 @@ import numbers
 from collections import namedtuple
 import inspect
 import math
-import os
 import sys
 import textwrap
 from types import ModuleType
@@ -585,11 +584,14 @@ class MapWrapper:
             self.pool = pool
             self._mapfunc = self.pool
         else:
-            from multiprocessing import get_context, get_start_method
+            from multiprocessing import (
+                get_all_start_methods, get_context, get_start_method
+            )
 
             method = get_start_method(allow_none=True)
 
-            if method is None and os.name=='posix' and sys.version_info < (3, 14):
+            if (method is None and sys.version_info < (3, 14)
+                    and 'forkserver' in get_all_start_methods()):
                 # Python 3.13 and older used "fork" on posix, which can lead to
                 # deadlocks. This backports that fix to older Python versions.
                 method = 'forkserver'
@@ -951,8 +953,8 @@ class _RichResult(dict):
         except KeyError as e:
             raise AttributeError(name) from e
 
-    __setattr__ = dict.__setitem__  # type: ignore[assignment]
-    __delattr__ = dict.__delitem__  # type: ignore[assignment]
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
 
     def __repr__(self):
         order_keys = ['message', 'success', 'status', 'fun', 'funl', 'x', 'xl',

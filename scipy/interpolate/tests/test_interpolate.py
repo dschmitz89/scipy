@@ -1,3 +1,5 @@
+import pickle
+
 from scipy._lib._array_api import (
     xp_assert_equal, xp_assert_close, assert_almost_equal, assert_array_almost_equal,
     make_xp_test_case, is_cupy, _xp_copy_to_numpy
@@ -11,14 +13,17 @@ import numpy as np
 
 from scipy.interpolate import (interp1d, interp2d, lagrange, PPoly, BPoly,
         splrep, splev, splantider, splint, sproot, Akima1DInterpolator,
-        NdPPoly, BSpline, PchipInterpolator)
+        NdPPoly, BSpline, PchipInterpolator, make_interp_spline, CubicSpline,
+        FloaterHormannInterpolator, BarycentricInterpolator, KroghInterpolator,
+        CubicHermiteSpline, LinearNDInterpolator, NearestNDInterpolator,
+        CloughTocher2DInterpolator, RBFInterpolator, RegularGridInterpolator)
 
 from scipy.special import poch, gamma
 
 from scipy.interpolate import _ppoly
 
 from scipy._lib._gcutils import assert_deallocated
-from scipy._lib._testutils import _run_concurrent_barrier
+from scipy._lib._testutils import _run_concurrent_barrier, IS_WASM
 
 from scipy.integrate import nquad
 
@@ -997,7 +1002,7 @@ class TestAkima1DInterpolator:
                        dtype=xp.float64)
         match = "`method`=invalid is unsupported."
         with pytest.raises(NotImplementedError, match=match):
-            Akima1DInterpolator(x, y, method="invalid")  # type: ignore
+            Akima1DInterpolator(x, y, method="invalid")
 
     def test_extrapolate_attr(self, xp):
         #
@@ -1048,6 +1053,7 @@ def test_complex(method):
     with pytest.raises(ValueError, match=msg):
         method(x, y)
 
+    @pytest.mark.xfail(IS_WASM, reason="cannot start new thread in Pyodide/WASM")
     def test_concurrency(self):
         # Check that no segfaults appear with concurrent access to Akima1D
         x = np.linspace(-5, 5, 11)
@@ -1169,6 +1175,7 @@ class TestPPolyCommon:
 
             assert_raises(ValueError, p, np.array([[0.1, 0.2], [0.4]], dtype=object))
 
+    @pytest.mark.xfail(IS_WASM, reason="cannot start new thread in Pyodide/WASM")
     def test_concurrency(self, xp):
         # Check that no segfaults appear with concurrent access to BPoly, PPoly
         c = np.random.rand(8, 12, 5, 6, 7)
@@ -2618,6 +2625,7 @@ class TestNdPPoly:
         paz = p.antiderivative((0, 0, 1))
         xp_assert_close(pz((u, v)), paz((u, v, b)) - paz((u, v, a)))
 
+    @pytest.mark.xfail(IS_WASM, reason="cannot start new thread in Pyodide/WASM")
     def test_concurrency(self):
         rng = np.random.default_rng(12345)
 
@@ -2807,3 +2815,47 @@ def _ppoly4d_eval(c, xs, xnew, ynew, znew, unew, nu=None):
         out[jout] = val
 
     return out
+
+@pytest.mark.parametrize("interp", [make_interp_spline,  # BSpline
+                                    CubicSpline,
+                                    PchipInterpolator,
+                                    Akima1DInterpolator,
+                                    FloaterHormannInterpolator,
+                                    BarycentricInterpolator,
+                                    KroghInterpolator,
+                                    lambda x, y: BPoly.from_derivatives(
+                                        x,[[yi, yi, yi] for yi in y]),
+                                    lambda x, y: CubicHermiteSpline(x, y, y)])  # PPoly
+def test_pickleable_1D(interp):
+    x = np.linspace(0, 1, 10)
+    y = np.exp(x)
+    x_eval = np.linspace(0, 1, 100)
+    obj = interp(x, y)
+    y1 = obj(x_eval)
+    y2 = pickle.loads(pickle.dumps(obj))(x_eval)
+    xp_assert_close(y1, y2, atol=1e-12)
+
+
+@pytest.mark.parametrize("interp", [LinearNDInterpolator,
+                                    NearestNDInterpolator,
+                                    CloughTocher2DInterpolator,
+                                    RBFInterpolator,
+                                    RegularGridInterpolator,])
+def test_pickleable_2D(interp):
+    # generate data on a regular grid
+    x = np.linspace(0, 1, 5)
+    y = np.linspace(0, 1, 5)
+    X, Y = np.meshgrid(x, y)
+    Z = np.exp(X + Y)
+    points = np.column_stack([X.ravel(), Y.ravel()])
+    if interp is RegularGridInterpolator:
+        obj = interp((x, y), Z)
+    else:
+        obj = interp(points, Z.ravel())
+    x_eval = np.linspace(0, 1, 10)
+    y_eval = np.linspace(0, 1, 10)
+    X_eval, Y_eval = np.meshgrid(x_eval, y_eval)
+    eval_points = np.column_stack([X_eval.ravel(), Y_eval.ravel()])
+    Z1 = obj(eval_points)
+    Z2 = pickle.loads(pickle.dumps(obj))(eval_points)
+    xp_assert_close(Z1, Z2, atol=1e-12)

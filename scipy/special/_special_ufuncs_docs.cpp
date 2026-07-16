@@ -6,6 +6,50 @@ const char *_bivariate_normal_sf_doc = R"(
     Internal function, do not use.
     )";
 
+const char *_cosine_cdf_doc = R"(
+    _cosine_cdf(x)
+
+    Cumulative distribution function (CDF) of the cosine distribution::
+
+                 {             0,              x < -pi
+        cdf(x) = { (pi + x + sin(x))/(2*pi),   -pi <= x <= pi
+                 {             1,              x > pi
+
+    Parameters
+    ----------
+    x : array_like
+        `x` must contain real numbers.
+
+    Returns
+    -------
+    scalar or ndarray
+        The cosine distribution CDF evaluated at `x`.
+    )";
+
+const char *_cosine_invcdf_doc = R"(
+    _cosine_invcdf(p)
+
+    Inverse of the cumulative distribution function (CDF) of the cosine
+    distribution.
+
+    The CDF of the cosine distribution is::
+
+        cdf(x) = (pi + x + sin(x))/(2*pi)
+
+    This function computes the inverse of cdf(x).
+
+    Parameters
+    ----------
+    p : array_like
+        `p` must contain real numbers in the interval ``0 <= p <= 1``.
+        `nan` is returned for values of `p` outside the interval [0, 1].
+
+    Returns
+    -------
+    scalar or ndarray
+        The inverse of the cosine distribution CDF evaluated at `p`.
+    )";
+
 const char *_igam_fac_doc = R"(
     Internal function, do not use.
     )";
@@ -3000,8 +3044,8 @@ const char *ellipj_doc = R"(
 
     Jacobi elliptic functions.
 
-    Calculates the Jacobi elliptic functions of parameter `m` between
-    0 and 1, and real argument `u`.
+    Calculates the Jacobi elliptic functions of parameter `m` less than or equal to
+    1, and real argument `u`.
 
     Parameters
     ----------
@@ -9446,6 +9490,91 @@ const char *wright_bessel_doc = R"(
 
     >>> a * x * wright_bessel(a, b+a, x) + (b-1) * wright_bessel(a, b, x)
     4.5314465939443025
+    )";
+
+const char *wrightomega_doc = R"(
+    wrightomega(z, out=None)
+
+    Wright Omega function.
+
+    Defined as the solution to
+
+    .. math::
+
+        \omega + \log(\omega) = z
+
+    where :math:`\log` is the principal branch of the complex logarithm.
+
+    Parameters
+    ----------
+    z : array_like
+        Points at which to evaluate the Wright Omega function
+    out : ndarray, optional
+        Optional output array for the function values
+
+    Returns
+    -------
+    omega : scalar or ndarray
+        Values of the Wright Omega function
+
+    See Also
+    --------
+    lambertw : The Lambert W function
+
+    Notes
+    -----
+    .. versionadded:: 0.19.0
+
+    The function can also be defined as
+
+    .. math::
+
+        \omega(z) = W_{K(z)}(e^z)
+
+    where :math:`K(z) = \lceil (\Im(z) - \pi)/(2\pi) \rceil` is the
+    unwinding number and :math:`W` is the Lambert W function.
+
+    The implementation here is taken from [1]_.
+
+    References
+    ----------
+    .. [1] Lawrence, Corless, and Jeffrey, "Algorithm 917: Complex
+           Double-Precision Evaluation of the Wright :math:`\omega`
+           Function." ACM Transactions on Mathematical Software,
+           2012. :doi:`10.1145/2168773.2168779`.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from scipy.special import wrightomega, lambertw
+
+    >>> wrightomega([-2, -1, 0, 1, 2])
+    array([0.12002824, 0.27846454, 0.56714329, 1.        , 1.5571456 ])
+
+    Complex input:
+
+    >>> wrightomega(3 + 5j)
+    (1.5804428632097158+3.8213626783287937j)
+
+    Verify that ``wrightomega(z)`` satisfies ``w + log(w) = z``:
+
+    >>> w = -5 + 4j
+    >>> wrightomega(w + np.log(w))
+    (-5+4j)
+
+    Verify the connection to ``lambertw``:
+
+    >>> z = 0.5 + 3j
+    >>> wrightomega(z)
+    (0.0966015889280649+1.4937828458191993j)
+    >>> lambertw(np.exp(z))
+    (0.09660158892806493+1.4937828458191993j)
+
+    >>> z = 0.5 + 4j
+    >>> wrightomega(z)
+    (-0.3362123489037213+2.282986001579032j)
+    >>> lambertw(np.exp(z), k=1)
+    (-0.33621234890372115+2.282986001579032j)
     )";
 
 const char *y0_doc = R"(

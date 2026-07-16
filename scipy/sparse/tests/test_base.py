@@ -16,6 +16,8 @@ import platform
 import itertools
 import sys
 import warnings
+from typing import Any
+from collections.abc import Callable
 
 import pytest
 from pytest import raises as assert_raises
@@ -4779,7 +4781,7 @@ TestCSCMatrix.init_class()
 
 
 class TestDOK(sparse_test_class(minmax=False, nnz_axis=False)):
-    spcreator = dok_array
+    spcreator: Callable[..., Any] = dok_array
     math_dtypes = [np.int_, np.float64, np.complex128]
 
     def test_mult(self):
@@ -4885,7 +4887,7 @@ TestDOKMatrix.init_class()
 
 
 class TestLIL(sparse_test_class(minmax=False)):
-    spcreator = lil_array
+    spcreator: Callable[..., Any] = lil_array
     math_dtypes = [np.int_, np.float64, np.complex128]
 
     def test_dot(self):
@@ -5187,14 +5189,14 @@ class TestCOO(BaseTestCOO,
               sparse_test_class(getset=True,
                                 slicing=True, slicing_assign=True,
                                 fancy_indexing=True, fancy_assign=True)):
-    spcreator = coo_array
+    spcreator: Callable[..., Any] = coo_array
 
 class TestCOOMatrix(_MatrixMixin,
                     BaseTestCOO,
                     sparse_test_class(getset=False,
                                       slicing=False, slicing_assign=False,
                                       fancy_indexing=False, fancy_assign=False)):
-    spcreator = coo_matrix
+    spcreator: Callable[..., Any] = coo_matrix
 
 
 TestCOO.init_class()
@@ -5216,7 +5218,7 @@ def test_sparray_subscriptable():
 class TestDIA(sparse_test_class(getset=False, slicing=False, slicing_assign=False,
                                 fancy_indexing=False, fancy_assign=False,
                                 minmax=False, nnz_axis=False)):
-    spcreator = dia_array
+    spcreator: Callable[..., Any] = dia_array
     math_dtypes = [np.int_, np.float64, np.complex128]
 
     def test_constructor1(self):
@@ -5441,7 +5443,7 @@ class TestBSR(sparse_test_class(getset=False,
                                 slicing=False, slicing_assign=False,
                                 fancy_indexing=False, fancy_assign=False,
                                 nnz_axis=False)):
-    spcreator = bsr_array
+    spcreator: Callable[..., Any] = bsr_array
     math_dtypes = [np.int_, np.float64, np.complex128]
 
     def test_constructor1(self):
@@ -5728,7 +5730,7 @@ class TestBSR(sparse_test_class(getset=False,
 
 
 class TestBSRMatrix(_MatrixMixin, TestBSR):
-    spcreator = bsr_matrix
+    spcreator: Callable[..., Any] = bsr_matrix
 
 
 TestBSR.init_class()

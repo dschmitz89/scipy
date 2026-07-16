@@ -14,7 +14,7 @@ from scipy.interpolate import (
     approximate_taylor_polynomial, CubicHermiteSpline, pchip,
     PchipInterpolator, pchip_interpolate, Akima1DInterpolator, CubicSpline,
     make_interp_spline)
-from scipy._lib._testutils import _run_concurrent_barrier
+from scipy._lib._testutils import _run_concurrent_barrier, IS_WASM
 
 skip_xp_backends = pytest.mark.skip_xp_backends
 xfail_xp_backends = pytest.mark.xfail_xp_backends
@@ -321,6 +321,7 @@ class TestKrogh:
         with pytest.warns(UserWarning, match="40 degrees provided,"):
             KroghInterpolator(np.arange(40), np.ones(40))
 
+    @pytest.mark.xfail(IS_WASM, reason="cannot start new thread in Pyodide/WASM")
     def test_concurrency(self):
         P = KroghInterpolator(self.xs, self.ys)
 
@@ -530,6 +531,7 @@ class TestBarycentric:
                            match="Interpolation points xi must be distinct."):
             BarycentricInterpolator(xis, ys)
 
+    @pytest.mark.xfail(IS_WASM, reason="cannot start new thread in Pyodide/WASM")
     def test_concurrency(self):
         P = BarycentricInterpolator(self.xs, self.ys)
 
@@ -796,10 +798,10 @@ class TestCubicSpline:
         x = xp.linspace(0, 2 * xp.pi, 10, dtype=xp.float64)
         y = xp.cos(x)
         S = CubicSpline(x, y, bc_type='periodic')
-        assert_almost_equal(S(1), S(1 + 2 * xp.pi), decimal=15)
+        xp_assert_close(S(1), S(1 + 2 * xp.pi), rtol=1e-15)
 
         S = CubicSpline(x, y)
-        assert_almost_equal(S(x), xp.cos(x), decimal=15)
+        xp_assert_close(S(x), xp.cos(x), rtol=1e-15)
 
     def test_second_derivative_continuity_gh_11758(self):
         # gh-11758: C2 continuity fail
